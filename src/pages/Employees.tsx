@@ -1,0 +1,109 @@
+import { useState } from "react";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Edit, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface Employee {
+  id: string;
+  name: string;
+  phone: string;
+  branch: string;
+  commissionPercent: number;
+  role: string;
+  active: boolean;
+}
+
+const initialEmployees: Employee[] = [
+  { id: "E001", name: "محمد سعيد", phone: "01011111111", branch: "القاهرة", commissionPercent: 3, role: "مبيعات", active: true },
+  { id: "E002", name: "علي حسن", phone: "01022222222", branch: "الجيزة", commissionPercent: 2.5, role: "مبيعات", active: true },
+  { id: "E003", name: "نورا أحمد", phone: "01033333333", branch: "القاهرة", commissionPercent: 0, role: "محاسب", active: true },
+];
+
+export default function Employees() {
+  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", phone: "", branch: "", commissionPercent: 0, role: "مبيعات" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleSave = () => {
+    if (!form.name) { toast({ title: "خطأ", description: "يرجى إدخال الاسم", variant: "destructive" }); return; }
+    if (editingId) {
+      setEmployees((prev) => prev.map((e) => (e.id === editingId ? { ...e, ...form, active: true } : e)));
+    } else {
+      const newId = `E${String(employees.length + 1).padStart(3, "0")}`;
+      setEmployees([...employees, { id: newId, ...form, active: true }]);
+    }
+    toast({ title: editingId ? "تم التحديث" : "تمت الإضافة" });
+    setForm({ name: "", phone: "", branch: "", commissionPercent: 0, role: "مبيعات" });
+    setEditingId(null);
+    setOpen(false);
+  };
+
+  return (
+    <AppLayout>
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h1 className="page-header mb-0">إدارة الموظفين</h1>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setForm({ name: "", phone: "", branch: "", commissionPercent: 0, role: "مبيعات" }); setEditingId(null); } }}>
+            <DialogTrigger asChild><Button><Plus className="h-4 w-4 ml-2" />إضافة موظف</Button></DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader><DialogTitle>{editingId ? "تعديل الموظف" : "إضافة موظف جديد"}</DialogTitle></DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="space-y-1.5"><Label>الاسم *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div className="space-y-1.5"><Label>الهاتف</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} dir="ltr" /></div>
+                <div className="space-y-1.5"><Label>الفرع</Label><Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} /></div>
+                <div className="space-y-1.5"><Label>نسبة العمولة %</Label><Input type="number" value={form.commissionPercent} onChange={(e) => setForm({ ...form, commissionPercent: Number(e.target.value) })} dir="ltr" /></div>
+                <div className="space-y-1.5"><Label>الدور الوظيفي</Label><Input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} /></div>
+              </div>
+              <Button onClick={handleSave} className="w-full mt-4">{editingId ? "تحديث" : "حفظ"}</Button>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="text-right p-3 font-medium text-muted-foreground">الكود</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">الاسم</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">الهاتف</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">الفرع</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">العمولة</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">الدور</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.map((e) => (
+                    <tr key={e.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="p-3 font-medium text-primary">{e.id}</td>
+                      <td className="p-3">{e.name}</td>
+                      <td className="p-3" dir="ltr">{e.phone}</td>
+                      <td className="p-3">{e.branch}</td>
+                      <td className="p-3">{e.commissionPercent}%</td>
+                      <td className="p-3">{e.role}</td>
+                      <td className="p-3">
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => { setForm(e); setEditingId(e.id); setOpen(true); }}><Edit className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => setEmployees((prev) => prev.filter((x) => x.id !== e.id))} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </AppLayout>
+  );
+}
