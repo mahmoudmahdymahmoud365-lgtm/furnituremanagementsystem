@@ -13,21 +13,21 @@ interface Employee {
   name: string;
   phone: string;
   branch: string;
-  commissionPercent: number;
+  monthlySalary: number;
   role: string;
   active: boolean;
 }
 
 const initialEmployees: Employee[] = [
-  { id: "E001", name: "محمد سعيد", phone: "01011111111", branch: "القاهرة", commissionPercent: 3, role: "مبيعات", active: true },
-  { id: "E002", name: "علي حسن", phone: "01022222222", branch: "الجيزة", commissionPercent: 2.5, role: "مبيعات", active: true },
-  { id: "E003", name: "نورا أحمد", phone: "01033333333", branch: "القاهرة", commissionPercent: 0, role: "محاسب", active: true },
+  { id: "E001", name: "محمد سعيد", phone: "01011111111", branch: "القاهرة", monthlySalary: 5000, role: "مبيعات", active: true },
+  { id: "E002", name: "علي حسن", phone: "01022222222", branch: "الجيزة", monthlySalary: 4500, role: "مبيعات", active: true },
+  { id: "E003", name: "نورا أحمد", phone: "01033333333", branch: "القاهرة", monthlySalary: 6000, role: "محاسب", active: true },
 ];
 
 export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", branch: "", commissionPercent: 0, role: "مبيعات" });
+  const [form, setForm] = useState({ name: "", phone: "", branch: "", monthlySalary: 0, role: "مبيعات" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -40,7 +40,7 @@ export default function Employees() {
       setEmployees([...employees, { id: newId, ...form, active: true }]);
     }
     toast({ title: editingId ? "تم التحديث" : "تمت الإضافة" });
-    setForm({ name: "", phone: "", branch: "", commissionPercent: 0, role: "مبيعات" });
+    setForm({ name: "", phone: "", branch: "", monthlySalary: 0, role: "مبيعات" });
     setEditingId(null);
     setOpen(false);
   };
@@ -50,7 +50,7 @@ export default function Employees() {
       <div className="space-y-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="page-header mb-0">إدارة الموظفين</h1>
-          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setForm({ name: "", phone: "", branch: "", commissionPercent: 0, role: "مبيعات" }); setEditingId(null); } }}>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setForm({ name: "", phone: "", branch: "", monthlySalary: 0, role: "مبيعات" }); setEditingId(null); } }}>
             <DialogTrigger asChild><Button><Plus className="h-4 w-4 ml-2" />إضافة موظف</Button></DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader><DialogTitle>{editingId ? "تعديل الموظف" : "إضافة موظف جديد"}</DialogTitle></DialogHeader>
@@ -58,7 +58,7 @@ export default function Employees() {
                 <div className="space-y-1.5"><Label>الاسم *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
                 <div className="space-y-1.5"><Label>الهاتف</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} dir="ltr" /></div>
                 <div className="space-y-1.5"><Label>الفرع</Label><Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} /></div>
-                <div className="space-y-1.5"><Label>نسبة العمولة %</Label><Input type="number" value={form.commissionPercent} onChange={(e) => setForm({ ...form, commissionPercent: Number(e.target.value) })} dir="ltr" /></div>
+                <div className="space-y-1.5"><Label>المرتب الشهري</Label><Input type="number" value={form.monthlySalary} onChange={(e) => setForm({ ...form, monthlySalary: Number(e.target.value) })} dir="ltr" /></div>
                 <div className="space-y-1.5"><Label>الدور الوظيفي</Label><Input value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} /></div>
               </div>
               <Button onClick={handleSave} className="w-full mt-4">{editingId ? "تحديث" : "حفظ"}</Button>
@@ -76,7 +76,7 @@ export default function Employees() {
                     <th className="text-right p-3 font-medium text-muted-foreground">الاسم</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">الهاتف</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">الفرع</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground">العمولة</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">المرتب الشهري</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">الدور</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">إجراءات</th>
                   </tr>
@@ -88,11 +88,11 @@ export default function Employees() {
                       <td className="p-3">{e.name}</td>
                       <td className="p-3" dir="ltr">{e.phone}</td>
                       <td className="p-3">{e.branch}</td>
-                      <td className="p-3">{e.commissionPercent}%</td>
+                      <td className="p-3">{e.monthlySalary.toLocaleString()} ج.م</td>
                       <td className="p-3">{e.role}</td>
                       <td className="p-3">
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => { setForm(e); setEditingId(e.id); setOpen(true); }}><Edit className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => { setForm({ name: e.name, phone: e.phone, branch: e.branch, monthlySalary: e.monthlySalary, role: e.role }); setEditingId(e.id); setOpen(true); }}><Edit className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" onClick={() => setEmployees((prev) => prev.filter((x) => x.id !== e.id))} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </td>
