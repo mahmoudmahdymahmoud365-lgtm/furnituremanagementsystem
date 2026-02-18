@@ -26,6 +26,7 @@ interface Invoice {
   items: InvoiceItem[];
   status: string;
   paidTotal: number;
+  commissionPercent: number;
 }
 
 const calcLineTotal = (item: InvoiceItem) => item.qty * item.unitPrice - item.lineDiscount;
@@ -36,7 +37,7 @@ const initialInvoices: Invoice[] = [
     id: "INV-001", customer: "أحمد محمد علي", branch: "القاهرة", employee: "محمد سعيد",
     date: "2025-06-15",
     items: [{ productName: "غرفة نوم كاملة", qty: 1, unitPrice: 25000, lineDiscount: 1000 }],
-    status: "مؤكدة", paidTotal: 15000,
+    status: "مؤكدة", paidTotal: 15000, commissionPercent: 3,
   },
   {
     id: "INV-002", customer: "سارة أحمد حسن", branch: "الجيزة", employee: "علي حسن",
@@ -45,7 +46,7 @@ const initialInvoices: Invoice[] = [
       { productName: "طقم أنتريه مودرن", qty: 1, unitPrice: 18000, lineDiscount: 0 },
       { productName: "دولاب ملابس", qty: 2, unitPrice: 8000, lineDiscount: 500 },
     ],
-    status: "مسودة", paidTotal: 0,
+    status: "مسودة", paidTotal: 0, commissionPercent: 2.5,
   },
 ];
 
@@ -63,6 +64,7 @@ export default function Invoices() {
   const [branch, setBranch] = useState("");
   const [employee, setEmployee] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([{ productName: "", qty: 1, unitPrice: 0, lineDiscount: 0 }]);
+  const [commissionPercent, setCommissionPercent] = useState(0);
   const [printInvoice, setPrintInvoice] = useState<Invoice | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -110,10 +112,10 @@ export default function Invoices() {
     setInvoices([...invoices, {
       id: newId, customer, branch, employee,
       date: new Date().toISOString().split("T")[0],
-      items: [...items], status: "مسودة", paidTotal: 0,
+      items: [...items], status: "مسودة", paidTotal: 0, commissionPercent,
     }]);
     toast({ title: "تمت الإضافة", description: "تم إنشاء الفاتورة بنجاح" });
-    setCustomer(""); setBranch(""); setEmployee("");
+    setCustomer(""); setBranch(""); setEmployee(""); setCommissionPercent(0);
     setItems([{ productName: "", qty: 1, unitPrice: 0, lineDiscount: 0 }]);
     setOpen(false);
   };
@@ -129,10 +131,11 @@ export default function Invoices() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>إنشاء فاتورة جديدة</DialogTitle></DialogHeader>
-              <div className="grid grid-cols-3 gap-4 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
                 <div className="space-y-1.5"><Label>العميل *</Label><Input value={customer} onChange={(e) => setCustomer(e.target.value)} /></div>
                 <div className="space-y-1.5"><Label>الفرع</Label><Input value={branch} onChange={(e) => setBranch(e.target.value)} /></div>
                 <div className="space-y-1.5"><Label>الموظف</Label><Input value={employee} onChange={(e) => setEmployee(e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>نسبة العمولة %</Label><Input type="number" value={commissionPercent} onChange={(e) => setCommissionPercent(Number(e.target.value))} dir="ltr" /></div>
               </div>
 
               <div className="mt-6">
@@ -177,6 +180,8 @@ export default function Invoices() {
                     <th className="text-right p-3 font-medium text-muted-foreground">العميل</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">التاريخ</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">الإجمالي</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">العمولة %</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">مبلغ العمولة</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">المدفوع</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">المتبقي</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">الحالة</th>
@@ -186,6 +191,7 @@ export default function Invoices() {
                 <tbody>
                   {invoices.map((inv) => {
                     const total = calcTotal(inv.items);
+                    const commissionAmount = total * (inv.commissionPercent / 100);
                     const remaining = total - inv.paidTotal;
                     return (
                       <tr key={inv.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
@@ -193,6 +199,8 @@ export default function Invoices() {
                         <td className="p-3">{inv.customer}</td>
                         <td className="p-3">{inv.date}</td>
                         <td className="p-3">{total.toLocaleString()} ج.م</td>
+                        <td className="p-3">{inv.commissionPercent}%</td>
+                        <td className="p-3 text-accent-foreground">{commissionAmount.toLocaleString()} ج.م</td>
                         <td className="p-3 text-success">{inv.paidTotal.toLocaleString()} ج.م</td>
                         <td className="p-3 text-destructive">{remaining.toLocaleString()} ج.م</td>
                         <td className="p-3">
