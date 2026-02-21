@@ -7,24 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Receipt {
-  id: string;
-  invoiceId: string;
-  customer: string;
-  amount: number;
-  date: string;
-  method: string;
-  notes: string;
-}
-
-const initialReceipts: Receipt[] = [
-  { id: "R001", invoiceId: "INV-001", customer: "أحمد محمد علي", amount: 10000, date: "2025-06-15", method: "نقدي", notes: "" },
-  { id: "R002", invoiceId: "INV-001", customer: "أحمد محمد علي", amount: 5000, date: "2025-06-20", method: "تحويل بنكي", notes: "دفعة ثانية" },
-];
+import { useReceipts } from "@/data/hooks";
 
 export default function Receipts() {
-  const [receipts, setReceipts] = useState<Receipt[]>(initialReceipts);
+  const { receipts, addReceipt } = useReceipts();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ invoiceId: "", customer: "", amount: 0, method: "نقدي", notes: "" });
   const { toast } = useToast();
@@ -34,8 +20,7 @@ export default function Receipts() {
       toast({ title: "خطأ", description: "يرجى ملء الحقول المطلوبة", variant: "destructive" });
       return;
     }
-    const newId = `R${String(receipts.length + 1).padStart(3, "0")}`;
-    setReceipts([...receipts, { id: newId, ...form, date: new Date().toISOString().split("T")[0] }]);
+    addReceipt({ ...form, date: new Date().toISOString().split("T")[0] });
     toast({ title: "تم التسجيل", description: "تم تسجيل المقبوضة بنجاح" });
     setForm({ invoiceId: "", customer: "", amount: 0, method: "نقدي", notes: "" });
     setOpen(false);
@@ -47,9 +32,7 @@ export default function Receipts() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="page-header mb-0">المقبوضات</h1>
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 ml-2" />تسجيل مقبوضة</Button>
-            </DialogTrigger>
+            <DialogTrigger asChild><Button><Plus className="h-4 w-4 ml-2" />تسجيل مقبوضة</Button></DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader><DialogTitle>تسجيل مقبوضة جديدة</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">

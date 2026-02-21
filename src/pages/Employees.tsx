@@ -7,25 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Employee {
-  id: string;
-  name: string;
-  phone: string;
-  branch: string;
-  monthlySalary: number;
-  role: string;
-  active: boolean;
-}
-
-const initialEmployees: Employee[] = [
-  { id: "E001", name: "محمد سعيد", phone: "01011111111", branch: "القاهرة", monthlySalary: 5000, role: "مبيعات", active: true },
-  { id: "E002", name: "علي حسن", phone: "01022222222", branch: "الجيزة", monthlySalary: 4500, role: "مبيعات", active: true },
-  { id: "E003", name: "نورا أحمد", phone: "01033333333", branch: "القاهرة", monthlySalary: 6000, role: "محاسب", active: true },
-];
+import { useEmployees } from "@/data/hooks";
 
 export default function Employees() {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const { employees, addEmployee, updateEmployee, deleteEmployee } = useEmployees();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", branch: "", monthlySalary: 0, role: "مبيعات" });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -34,10 +19,9 @@ export default function Employees() {
   const handleSave = () => {
     if (!form.name) { toast({ title: "خطأ", description: "يرجى إدخال الاسم", variant: "destructive" }); return; }
     if (editingId) {
-      setEmployees((prev) => prev.map((e) => (e.id === editingId ? { ...e, ...form, active: true } : e)));
+      updateEmployee(editingId, { ...form, active: true });
     } else {
-      const newId = `E${String(employees.length + 1).padStart(3, "0")}`;
-      setEmployees([...employees, { id: newId, ...form, active: true }]);
+      addEmployee({ ...form, active: true });
     }
     toast({ title: editingId ? "تم التحديث" : "تمت الإضافة" });
     setForm({ name: "", phone: "", branch: "", monthlySalary: 0, role: "مبيعات" });
@@ -93,7 +77,7 @@ export default function Employees() {
                       <td className="p-3">
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => { setForm({ name: e.name, phone: e.phone, branch: e.branch, monthlySalary: e.monthlySalary, role: e.role }); setEditingId(e.id); setOpen(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setEmployees((prev) => prev.filter((x) => x.id !== e.id))} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteEmployee(e.id)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </td>
                     </tr>

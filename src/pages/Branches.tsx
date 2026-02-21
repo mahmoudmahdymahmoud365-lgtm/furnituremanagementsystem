@@ -7,23 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Branch {
-  id: string;
-  name: string;
-  address: string;
-  rent: number;
-  active: boolean;
-}
-
-const initialBranches: Branch[] = [
-  { id: "B001", name: "فرع القاهرة", address: "شارع التحرير - القاهرة", rent: 15000, active: true },
-  { id: "B002", name: "فرع الجيزة", address: "شارع الهرم - الجيزة", rent: 12000, active: true },
-  { id: "B003", name: "فرع الإسكندرية", address: "كورنيش الإسكندرية", rent: 10000, active: false },
-];
+import { useBranches } from "@/data/hooks";
 
 export default function Branches() {
-  const [branches, setBranches] = useState<Branch[]>(initialBranches);
+  const { branches, addBranch, updateBranch, deleteBranch } = useBranches();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", address: "", rent: 0, active: true });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -32,10 +19,9 @@ export default function Branches() {
   const handleSave = () => {
     if (!form.name) { toast({ title: "خطأ", description: "يرجى إدخال اسم الفرع", variant: "destructive" }); return; }
     if (editingId) {
-      setBranches((prev) => prev.map((b) => (b.id === editingId ? { ...b, ...form } : b)));
+      updateBranch(editingId, form);
     } else {
-      const newId = `B${String(branches.length + 1).padStart(3, "0")}`;
-      setBranches([...branches, { id: newId, ...form }]);
+      addBranch(form);
     }
     toast({ title: editingId ? "تم التحديث" : "تمت الإضافة" });
     setForm({ name: "", address: "", rent: 0, active: true });
@@ -91,7 +77,7 @@ export default function Branches() {
                       <td className="p-3">
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => { setForm(b); setEditingId(b.id); setOpen(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => setBranches((prev) => prev.filter((x) => x.id !== b.id))} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteBranch(b.id)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </td>
                     </tr>

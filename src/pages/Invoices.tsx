@@ -3,52 +3,16 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Printer } from "lucide-react";
+import { Plus, Trash2, Printer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import InvoicePrint from "@/components/InvoicePrint";
-
-interface InvoiceItem {
-  productName: string;
-  qty: number;
-  unitPrice: number;
-  lineDiscount: number;
-}
-
-interface Invoice {
-  id: string;
-  customer: string;
-  branch: string;
-  employee: string;
-  date: string;
-  items: InvoiceItem[];
-  status: string;
-  paidTotal: number;
-  commissionPercent: number;
-}
+import { useInvoices } from "@/data/hooks";
+import type { InvoiceItem, Invoice } from "@/data/types";
 
 const calcLineTotal = (item: InvoiceItem) => item.qty * item.unitPrice - item.lineDiscount;
 const calcTotal = (items: InvoiceItem[]) => items.reduce((sum, item) => sum + calcLineTotal(item), 0);
-
-const initialInvoices: Invoice[] = [
-  {
-    id: "INV-001", customer: "أحمد محمد علي", branch: "القاهرة", employee: "محمد سعيد",
-    date: "2025-06-15",
-    items: [{ productName: "غرفة نوم كاملة", qty: 1, unitPrice: 25000, lineDiscount: 1000 }],
-    status: "مؤكدة", paidTotal: 15000, commissionPercent: 3,
-  },
-  {
-    id: "INV-002", customer: "سارة أحمد حسن", branch: "الجيزة", employee: "علي حسن",
-    date: "2025-06-16",
-    items: [
-      { productName: "طقم أنتريه مودرن", qty: 1, unitPrice: 18000, lineDiscount: 0 },
-      { productName: "دولاب ملابس", qty: 2, unitPrice: 8000, lineDiscount: 500 },
-    ],
-    status: "مسودة", paidTotal: 0, commissionPercent: 2.5,
-  },
-];
 
 const statusColors: Record<string, string> = {
   "مسودة": "bg-muted text-muted-foreground",
@@ -58,7 +22,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function Invoices() {
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const { invoices, addInvoice } = useInvoices();
   const [open, setOpen] = useState(false);
   const [customer, setCustomer] = useState("");
   const [branch, setBranch] = useState("");
@@ -108,12 +72,11 @@ export default function Invoices() {
       toast({ title: "خطأ", description: "يرجى ملء جميع الحقول المطلوبة", variant: "destructive" });
       return;
     }
-    const newId = `INV-${String(invoices.length + 1).padStart(3, "0")}`;
-    setInvoices([...invoices, {
-      id: newId, customer, branch, employee,
+    addInvoice({
+      customer, branch, employee,
       date: new Date().toISOString().split("T")[0],
       items: [...items], status: "مسودة", paidTotal: 0, commissionPercent,
-    }]);
+    });
     toast({ title: "تمت الإضافة", description: "تم إنشاء الفاتورة بنجاح" });
     setCustomer(""); setBranch(""); setEmployee(""); setCommissionPercent(0);
     setItems([{ productName: "", qty: 1, unitPrice: 0, lineDiscount: 0 }]);
@@ -126,9 +89,7 @@ export default function Invoices() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="page-header mb-0">فواتير المبيعات</h1>
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 ml-2" />فاتورة جديدة</Button>
-            </DialogTrigger>
+            <DialogTrigger asChild><Button><Plus className="h-4 w-4 ml-2" />فاتورة جديدة</Button></DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>إنشاء فاتورة جديدة</DialogTitle></DialogHeader>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
@@ -204,14 +165,10 @@ export default function Invoices() {
                         <td className="p-3 text-success">{inv.paidTotal.toLocaleString()} ج.م</td>
                         <td className="p-3 text-destructive">{remaining.toLocaleString()} ج.م</td>
                         <td className="p-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[inv.status] || ""}`}>
-                            {inv.status}
-                          </span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[inv.status] || ""}`}>{inv.status}</span>
                         </td>
                         <td className="p-3">
-                          <Button variant="ghost" size="icon" onClick={() => handlePrint(inv)} title="طباعة">
-                            <Printer className="h-4 w-4" />
-                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handlePrint(inv)} title="طباعة"><Printer className="h-4 w-4" /></Button>
                         </td>
                       </tr>
                     );
@@ -222,7 +179,6 @@ export default function Invoices() {
           </CardContent>
         </Card>
 
-        {/* Hidden print area */}
         <div className="hidden">
           {printInvoice && <InvoicePrint ref={printRef} invoice={printInvoice} />}
         </div>

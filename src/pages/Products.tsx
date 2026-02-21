@@ -7,28 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  defaultPrice: number;
-  unit: string;
-  notes: string;
-}
-
-const initialProducts: Product[] = [
-  { id: "P001", name: "غرفة نوم كاملة", category: "غرف نوم", defaultPrice: 25000, unit: "قطعة", notes: "" },
-  { id: "P002", name: "طقم أنتريه مودرن", category: "أنتريهات", defaultPrice: 18000, unit: "قطعة", notes: "" },
-  { id: "P003", name: "مطبخ ألوميتال", category: "مطابخ", defaultPrice: 15000, unit: "متر", notes: "" },
-  { id: "P004", name: "غرفة سفرة ٨ كراسي", category: "سفرة", defaultPrice: 22000, unit: "قطعة", notes: "" },
-  { id: "P005", name: "دولاب ملابس", category: "غرف نوم", defaultPrice: 8000, unit: "قطعة", notes: "" },
-];
+import { useProducts } from "@/data/hooks";
 
 const emptyProduct = { name: "", category: "", defaultPrice: 0, unit: "قطعة", notes: "" };
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const { products, addProduct, updateProduct, deleteProduct } = useProducts();
   const [search, setSearch] = useState("");
   const [formData, setFormData] = useState(emptyProduct);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -43,11 +27,10 @@ export default function Products() {
       return;
     }
     if (editingId) {
-      setProducts((prev) => prev.map((p) => (p.id === editingId ? { ...p, ...formData } : p)));
+      updateProduct(editingId, formData);
       toast({ title: "تم التحديث" });
     } else {
-      const newId = `P${String(products.length + 1).padStart(3, "0")}`;
-      setProducts((prev) => [...prev, { id: newId, ...formData }]);
+      addProduct(formData);
       toast({ title: "تمت الإضافة" });
     }
     setFormData(emptyProduct);
@@ -61,9 +44,7 @@ export default function Products() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="page-header mb-0">إدارة المنتجات</h1>
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setFormData(emptyProduct); setEditingId(null); } }}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 ml-2" />إضافة منتج</Button>
-            </DialogTrigger>
+            <DialogTrigger asChild><Button><Plus className="h-4 w-4 ml-2" />إضافة منتج</Button></DialogTrigger>
             <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>{editingId ? "تعديل المنتج" : "إضافة منتج جديد"}</DialogTitle></DialogHeader>
               <div className="grid grid-cols-2 gap-4 mt-4">
@@ -108,7 +89,7 @@ export default function Products() {
                       <td className="p-3">
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => { setFormData(p); setEditingId(p.id); setOpen(true); }}><Edit className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="icon" onClick={() => { setProducts((prev) => prev.filter((x) => x.id !== p.id)); }} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteProduct(p.id)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </td>
                     </tr>

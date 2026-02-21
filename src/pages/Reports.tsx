@@ -2,30 +2,40 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { BarChart3, Users, UserCog } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useInvoices, useCustomers, useEmployees } from "@/data/hooks";
+import type { InvoiceItem } from "@/data/types";
 
-const salesData = [
-  { invoice: "INV-001", customer: "أحمد محمد", date: "2025-06-15", total: 24000, paid: 15000 },
-  { invoice: "INV-002", customer: "سارة أحمد", date: "2025-06-16", total: 33500, paid: 0 },
-];
-
-const customerBalances = [
-  { name: "أحمد محمد علي", totalInvoices: 24000, totalPaid: 15000, balance: 9000 },
-  { name: "سارة أحمد حسن", totalInvoices: 33500, totalPaid: 0, balance: 33500 },
-  { name: "محمود حسن إبراهيم", totalInvoices: 0, totalPaid: 0, balance: 0 },
-];
-
-const commissionData = [
-  { name: "محمد سعيد", totalSales: 24000, commission: 3, commissionAmount: 720 },
-  { name: "علي حسن", totalSales: 33500, commission: 2.5, commissionAmount: 837.5 },
-];
+const calcTotal = (items: InvoiceItem[]) => items.reduce((sum, i) => sum + (i.qty * i.unitPrice - i.lineDiscount), 0);
 
 export default function Reports() {
+  const { invoices } = useInvoices();
+  const { customers } = useCustomers();
+  const { employees } = useEmployees();
   const [dateFrom, setDateFrom] = useState("2025-06-01");
   const [dateTo, setDateTo] = useState("2025-06-30");
+
+  const filteredInvoices = invoices.filter((inv) => inv.date >= dateFrom && inv.date <= dateTo);
+
+  // Customer balances from real data
+  const customerBalances = customers.map((c) => {
+    const custInvoices = invoices.filter((inv) => inv.customer === c.fullName);
+    const totalInvoices = custInvoices.reduce((s, inv) => s + calcTotal(inv.items), 0);
+    const totalPaid = custInvoices.reduce((s, inv) => s + inv.paidTotal, 0);
+    return { name: c.fullName, totalInvoices, totalPaid, balance: totalInvoices - totalPaid };
+  });
+
+  // Commission data from real invoices
+  const empCommissions = employees
+    .filter((e) => e.role === "مبيعات")
+    .map((e) => {
+      const empInvoices = invoices.filter((inv) => inv.employee === e.name);
+      const totalSales = empInvoices.reduce((s, inv) => s + calcTotal(inv.items), 0);
+      const commissionAmount = empInvoices.reduce((s, inv) => s + calcTotal(inv.items) * (inv.commissionPercent / 100), 0);
+      return { name: e.name, monthlySalary: e.monthlySalary, totalSales, commissionAmount, totalDue: e.monthlySalary + commissionAmount };
+    });
 
   return (
     <AppLayout>
@@ -58,13 +68,13 @@ export default function Reports() {
                     <th className="text-right p-3 font-medium text-muted-foreground">المدفوع</th>
                   </tr></thead>
                   <tbody>
-                    {salesData.map((s) => (
-                      <tr key={s.invoice} className="border-b last:border-0">
-                        <td className="p-3 font-medium text-primary">{s.invoice}</td>
-                        <td className="p-3">{s.customer}</td>
-                        <td className="p-3">{s.date}</td>
-                        <td className="p-3">{s.total.toLocaleString()} ج.م</td>
-                        <td className="p-3">{s.paid.toLocaleString()} ج.م</td>
+                    {filteredInvoices.map((inv) => (
+                      <tr key={inv.id} className="border-b last:border-0">
+                        <td className="p-3 font-medium text-primary">{inv.id}</td>
+                        <td className="p-3">{inv.customer}</td>
+                        <td className="p-3">{inv.date}</td>
+                        <td className="p-3">{calcTotal(inv.items).toLocaleString()} ج.م</td>
+                        <td className="p-3">{inv.paidTotal.toLocaleString()} ج.م</td>
                       </tr>
                     ))}
                   </tbody>
@@ -101,22 +111,24 @@ export default function Reports() {
 
           <TabsContent value="commissions">
             <Card>
-              <CardHeader><CardTitle className="text-base">تقرير العمولات</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">تقرير العمولات والمرتبات</CardTitle></CardHeader>
               <CardContent>
                 <table className="w-full text-sm">
                   <thead><tr className="border-b bg-muted/50">
                     <th className="text-right p-3 font-medium text-muted-foreground">الموظف</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">المرتب الثابت</th>
                     <th className="text-right p-3 font-medium text-muted-foreground">إجمالي المبيعات</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground">نسبة العمولة</th>
-                    <th className="text-right p-3 font-medium text-muted-foreground">مبلغ العمولة</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">إجمالي العمولات</th>
+                    <th className="text-right p-3 font-medium text-muted-foreground">المستحق الكلي</th>
                   </tr></thead>
                   <tbody>
-                    {commissionData.map((c) => (
+                    {empCommissions.map((c) => (
                       <tr key={c.name} className="border-b last:border-0">
                         <td className="p-3">{c.name}</td>
+                        <td className="p-3">{c.monthlySalary.toLocaleString()} ج.م</td>
                         <td className="p-3">{c.totalSales.toLocaleString()} ج.م</td>
-                        <td className="p-3">{c.commission}%</td>
-                        <td className="p-3 font-medium text-accent">{c.commissionAmount.toLocaleString()} ج.م</td>
+                        <td className="p-3 text-accent-foreground">{c.commissionAmount.toLocaleString()} ج.م</td>
+                        <td className="p-3 font-bold text-primary">{c.totalDue.toLocaleString()} ج.م</td>
                       </tr>
                     ))}
                   </tbody>
