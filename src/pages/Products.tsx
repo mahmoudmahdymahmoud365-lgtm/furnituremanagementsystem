@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
+import { ExportButtons } from "@/components/ExportButtons";
 import { useToast } from "@/hooks/use-toast";
 import { useProducts } from "@/data/hooks";
 
@@ -59,9 +60,23 @@ export default function Products() {
           </Dialog>
         </div>
 
-        <div className="relative max-w-sm">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="بحث بالاسم أو الفئة..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-10" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="بحث بالاسم أو الفئة..." value={search} onChange={(e) => setSearch(e.target.value)} className="pr-10" />
+          </div>
+          <ExportButtons
+            data={filtered as any}
+            headers={[
+              { key: "id", label: "الكود" },
+              { key: "name", label: "المنتج" },
+              { key: "category", label: "الفئة" },
+              { key: "defaultPrice", label: "السعر" },
+              { key: "unit", label: "الوحدة" },
+            ]}
+            fileName="المنتجات"
+            title="قائمة المنتجات"
+          />
         </div>
 
         <Card>

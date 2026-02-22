@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Trash2, Printer } from "lucide-react";
+import { ExportButtons } from "@/components/ExportButtons";
 import { useToast } from "@/hooks/use-toast";
 import InvoicePrint from "@/components/InvoicePrint";
 import { useInvoices } from "@/data/hooks";
@@ -130,6 +131,34 @@ export default function Invoices() {
             </DialogContent>
           </Dialog>
         </div>
+
+        <ExportButtons
+          data={invoices.map((inv) => {
+            const total = calcTotal(inv.items);
+            return {
+              id: inv.id,
+              customer: inv.customer,
+              date: inv.date,
+              total,
+              commissionPercent: inv.commissionPercent + "%",
+              paidTotal: inv.paidTotal,
+              remaining: total - inv.paidTotal,
+              status: inv.status,
+            };
+          })}
+          headers={[
+            { key: "id", label: "رقم الفاتورة" },
+            { key: "customer", label: "العميل" },
+            { key: "date", label: "التاريخ" },
+            { key: "total", label: "الإجمالي" },
+            { key: "commissionPercent", label: "العمولة %" },
+            { key: "paidTotal", label: "المدفوع" },
+            { key: "remaining", label: "المتبقي" },
+            { key: "status", label: "الحالة" },
+          ]}
+          fileName="الفواتير"
+          title="فواتير المبيعات"
+        />
 
         <Card>
           <CardContent className="p-0">

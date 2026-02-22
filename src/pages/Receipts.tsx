@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import { ExportButtons } from "@/components/ExportButtons";
 import { useToast } from "@/hooks/use-toast";
 import { useReceipts } from "@/data/hooks";
 
@@ -46,6 +47,20 @@ export default function Receipts() {
             </DialogContent>
           </Dialog>
         </div>
+
+        <ExportButtons
+          data={receipts as any}
+          headers={[
+            { key: "id", label: "الكود" },
+            { key: "invoiceId", label: "رقم الفاتورة" },
+            { key: "customer", label: "العميل" },
+            { key: "amount", label: "المبلغ" },
+            { key: "date", label: "التاريخ" },
+            { key: "method", label: "طريقة الدفع" },
+          ]}
+          fileName="المقبوضات"
+          title="المقبوضات"
+        />
 
         <Card>
           <CardContent className="p-0">

@@ -1,3 +1,4 @@
+import { ExportButtons } from "@/components/ExportButtons";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,7 +53,15 @@ export default function Reports() {
           <TabsContent value="sales">
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">تقرير المبيعات</CardTitle>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <CardTitle className="text-base">تقرير المبيعات</CardTitle>
+                  <ExportButtons
+                    data={filteredInvoices.map((inv) => ({ id: inv.id, customer: inv.customer, date: inv.date, total: calcTotal(inv.items), paidTotal: inv.paidTotal }))}
+                    headers={[{ key: "id", label: "الفاتورة" }, { key: "customer", label: "العميل" }, { key: "date", label: "التاريخ" }, { key: "total", label: "الإجمالي" }, { key: "paidTotal", label: "المدفوع" }]}
+                    fileName="تقرير_المبيعات"
+                    title="تقرير المبيعات"
+                  />
+                </div>
                 <div className="flex gap-4 mt-2">
                   <div className="space-y-1"><Label className="text-xs">من</Label><Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} dir="ltr" className="w-40" /></div>
                   <div className="space-y-1"><Label className="text-xs">إلى</Label><Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} dir="ltr" className="w-40" /></div>
@@ -85,7 +94,17 @@ export default function Reports() {
 
           <TabsContent value="balances">
             <Card>
-              <CardHeader><CardTitle className="text-base">أرصدة العملاء</CardTitle></CardHeader>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <CardTitle className="text-base">أرصدة العملاء</CardTitle>
+                  <ExportButtons
+                    data={customerBalances as any}
+                    headers={[{ key: "name", label: "العميل" }, { key: "totalInvoices", label: "إجمالي الفواتير" }, { key: "totalPaid", label: "المدفوع" }, { key: "balance", label: "الرصيد المتبقي" }]}
+                    fileName="أرصدة_العملاء"
+                    title="أرصدة العملاء"
+                  />
+                </div>
+              </CardHeader>
               <CardContent>
                 <table className="w-full text-sm">
                   <thead><tr className="border-b bg-muted/50">
@@ -111,7 +130,17 @@ export default function Reports() {
 
           <TabsContent value="commissions">
             <Card>
-              <CardHeader><CardTitle className="text-base">تقرير العمولات والمرتبات</CardTitle></CardHeader>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <CardTitle className="text-base">تقرير العمولات والمرتبات</CardTitle>
+                  <ExportButtons
+                    data={empCommissions as any}
+                    headers={[{ key: "name", label: "الموظف" }, { key: "monthlySalary", label: "المرتب الثابت" }, { key: "totalSales", label: "إجمالي المبيعات" }, { key: "commissionAmount", label: "إجمالي العمولات" }, { key: "totalDue", label: "المستحق الكلي" }]}
+                    fileName="تقرير_العمولات"
+                    title="تقرير العمولات والمرتبات"
+                  />
+                </div>
+              </CardHeader>
               <CardContent>
                 <table className="w-full text-sm">
                   <thead><tr className="border-b bg-muted/50">
