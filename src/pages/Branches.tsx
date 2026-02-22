@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
+import { ExportButtons } from "@/components/ExportButtons";
 import { useToast } from "@/hooks/use-toast";
 import { useBranches } from "@/data/hooks";
 
@@ -47,6 +48,19 @@ export default function Branches() {
             </DialogContent>
           </Dialog>
         </div>
+
+        <ExportButtons
+          data={branches as any}
+          headers={[
+            { key: "id", label: "الكود" },
+            { key: "name", label: "الاسم" },
+            { key: "address", label: "العنوان" },
+            { key: "rent", label: "الإيجار" },
+            { key: "active", label: "الحالة" },
+          ]}
+          fileName="الفروع"
+          title="قائمة الفروع"
+        />
 
         <Card>
           <CardContent className="p-0">

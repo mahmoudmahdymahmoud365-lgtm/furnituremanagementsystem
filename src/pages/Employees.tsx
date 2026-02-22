@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
+import { ExportButtons } from "@/components/ExportButtons";
 import { useToast } from "@/hooks/use-toast";
 import { useEmployees } from "@/data/hooks";
 
@@ -49,6 +50,20 @@ export default function Employees() {
             </DialogContent>
           </Dialog>
         </div>
+
+        <ExportButtons
+          data={employees as any}
+          headers={[
+            { key: "id", label: "الكود" },
+            { key: "name", label: "الاسم" },
+            { key: "phone", label: "الهاتف" },
+            { key: "branch", label: "الفرع" },
+            { key: "monthlySalary", label: "المرتب الشهري" },
+            { key: "role", label: "الدور" },
+          ]}
+          fileName="الموظفين"
+          title="قائمة الموظفين"
+        />
 
         <Card>
           <CardContent className="p-0">
