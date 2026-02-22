@@ -76,14 +76,32 @@ export function subscribe(fn: Listener) {
   return () => listeners.delete(fn);
 }
 
+// ---- Snapshot caches (avoids new array refs on every read) ----
+let customersSnap: Customer[] = [...customers];
+let productsSnap: Product[] = [...products];
+let invoicesSnap: Invoice[] = [...invoices];
+let employeesSnap: Employee[] = [...employees];
+let branchesSnap: Branch[] = [...branches];
+let receiptsSnap: Receipt[] = [...receipts];
+
+function rebuildSnapshots() {
+  customersSnap = [...customers];
+  productsSnap = [...products];
+  invoicesSnap = [...invoices];
+  employeesSnap = [...employees];
+  branchesSnap = [...branches];
+  receiptsSnap = [...receipts];
+}
+
 function notify() {
+  rebuildSnapshots();
   listeners.forEach((fn) => fn());
 }
 
 // ==============================
 // CUSTOMERS
 // ==============================
-export function getCustomers(): Customer[] { return [...customers]; }
+export function getCustomers(): Customer[] { return customersSnap; }
 
 export function addCustomer(data: Omit<Customer, "id">): Customer {
   const c = { id: nextId("C", customers), ...data };
@@ -105,7 +123,7 @@ export function deleteCustomer(id: string) {
 // ==============================
 // PRODUCTS
 // ==============================
-export function getProducts(): Product[] { return [...products]; }
+export function getProducts(): Product[] { return productsSnap; }
 
 export function addProduct(data: Omit<Product, "id">): Product {
   const p = { id: nextId("P", products), ...data };
@@ -127,7 +145,7 @@ export function deleteProduct(id: string) {
 // ==============================
 // INVOICES
 // ==============================
-export function getInvoices(): Invoice[] { return [...invoices]; }
+export function getInvoices(): Invoice[] { return invoicesSnap; }
 
 export function addInvoice(data: Omit<Invoice, "id">): Invoice {
   const inv = { id: nextId("INV-", invoices), ...data };
@@ -144,7 +162,7 @@ export function updateInvoice(id: string, data: Partial<Invoice>) {
 // ==============================
 // EMPLOYEES
 // ==============================
-export function getEmployees(): Employee[] { return [...employees]; }
+export function getEmployees(): Employee[] { return employeesSnap; }
 
 export function addEmployee(data: Omit<Employee, "id">): Employee {
   const e = { id: nextId("E", employees), ...data };
@@ -166,7 +184,7 @@ export function deleteEmployee(id: string) {
 // ==============================
 // BRANCHES
 // ==============================
-export function getBranches(): Branch[] { return [...branches]; }
+export function getBranches(): Branch[] { return branchesSnap; }
 
 export function addBranch(data: Omit<Branch, "id">): Branch {
   const b = { id: nextId("B", branches), ...data };
@@ -188,7 +206,7 @@ export function deleteBranch(id: string) {
 // ==============================
 // RECEIPTS
 // ==============================
-export function getReceipts(): Receipt[] { return [...receipts]; }
+export function getReceipts(): Receipt[] { return receiptsSnap; }
 
 export function addReceipt(data: Omit<Receipt, "id">): Receipt {
   const r = { id: nextId("R", receipts), ...data };
